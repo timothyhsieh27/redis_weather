@@ -15,7 +15,7 @@ class Class
 
   def set_response
     puts 'Which report would you like?'
-    puts 'Please type Conditions, Forecast, Daylight, Alerts, or Hurricanes: '
+    puts 'Please type Conditions or Daylight: '
     @response = gets.chomp
     select_mode
   end
@@ -44,7 +44,7 @@ class Class
   def run_conditions
     # @redis.set(@response, 'Here is your ' + @response + ' report!')
     # puts @redis.get(@response)
-    show_conditions
+    get_save_conditions
     get_zipcode
     set_response
   end
@@ -72,11 +72,14 @@ class Class
   # end
   # end
 
-  def show_conditions
+  def get_save_conditions
     @conurl = HTTParty.get("http://api.wunderground.com/api/b1c58af1b85cc78f/conditions/q/#{@zipcode}.json")
     full = @conurl['current_observation']['display_location']['full']
     temp_f = @conurl['current_observation']['temp_f']
-    print "Current temperature in #{full} is: #{temp_f}\n"
+    @conditions = "Current temperature in #{full} is: #{temp_f}\n"
+    puts @conditions
+    @redis.set("#{@zipcode}", "#{@conditions}")
+    puts @redis.get("#{@zipcode}")
     # data = HTTParty.get(conurl).parsed_response
     # open("#{conurl}") do |f|
     #   json_string = f.read

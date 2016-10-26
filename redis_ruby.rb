@@ -5,7 +5,7 @@ require_relative 'class'
 
 def main
   variable = Class.new
-  # variable.get_zipcode
+  variable.get_zipcode
   variable.set_response
 end
 
