@@ -39,12 +39,8 @@ class Class
     end
   end
 
-# url = "http://api.wunderground.com/api/b1c58af1b85cc78f/conditions/forecast10day/astronomy/alerts/currenthurricane/q/#{@zipcode}.json"
-
   def run_conditions
-    # @redis.set(@response, 'Here is your ' + @response + ' report!')
-    # puts @redis.get(@response)
-    get_save_conditions
+    check_conditions
     get_zipcode
     set_response
   end
@@ -61,30 +57,29 @@ class Class
     set_response
   end
 
-  # def show_conditions
-  # open('http://api.wunderground.com/api/b1c58af1b85cc78f/geolookup/conditions/q/27713.json') do |f|
-  #   json_string = f.read
-  #   parsed_json = JSON.parse(json_string)
-  #   state = parsed_json['location']['state']
-  #   city = parsed_json['location']['city']
-  #   temp_f = parsed_json['current_observation']['temp_f']
-  #   print "Current temperature in #{city}, #{state} is: #{temp_f} degrees. \n"
-  # end
-  # end
+  def check_conditions
+    if zip_cache_exists?
+      load_zip_cache
+    else
+      save_conditions
+    end
+  end
 
-  def get_save_conditions
+  def zip_cache_exists?
+    @redis.get("#{@zipcode}") != nil
+  end
+
+  def load_zip_cache
+    puts @redis.get("#{@zipcode}")
+  end
+
+  def save_conditions
     @conurl = HTTParty.get("http://api.wunderground.com/api/b1c58af1b85cc78f/conditions/q/#{@zipcode}.json")
     full = @conurl['current_observation']['display_location']['full']
     temp_f = @conurl['current_observation']['temp_f']
     @conditions = "Current temperature in #{full} is: #{temp_f}\n"
     puts @conditions
     @redis.set("#{@zipcode}", "#{@conditions}")
-    puts @redis.get("#{@zipcode}")
-    # data = HTTParty.get(conurl).parsed_response
-    # open("#{conurl}") do |f|
-    #   json_string = f.read
-    #   parsed_json = JSON.parse(json_string)
-    # end
   end
 
   def run_forecast
@@ -132,3 +127,22 @@ end
 #   run_alerts if @response.casecmp('alerts')
 #   run_hurricanes if @response.casecmp('hurricanes')
 # end
+
+# def show_conditions
+# open('http://api.wunderground.com/api/b1c58af1b85cc78f/geolookup/conditions/q/27713.json') do |f|
+#   json_string = f.read
+#   parsed_json = JSON.parse(json_string)
+#   state = parsed_json['location']['state']
+#   city = parsed_json['location']['city']
+#   temp_f = parsed_json['current_observation']['temp_f']
+#   print "Current temperature in #{city}, #{state} is: #{temp_f} degrees. \n"
+# end
+# end
+
+# data = HTTParty.get(conurl).parsed_response
+# open("#{conurl}") do |f|
+#   json_string = f.read
+#   parsed_json = JSON.parse(json_string)
+# end
+
+# url = "http://api.wunderground.com/api/b1c58af1b85cc78f/conditions/forecast10day/astronomy/alerts/currenthurricane/q/#{@zipcode}.json"
