@@ -46,7 +46,7 @@ class Class
   end
 
   def run_daylight
-    show_daylight
+    check_daylight
     get_zipcode
     set_response
   end
@@ -62,6 +62,14 @@ class Class
       load_zip_cache
     else
       save_conditions
+    end
+  end
+
+  def check_daylight
+    if zip_cache_exists?
+      load_zip_cache
+    else
+      save_daylight
     end
   end
 
@@ -89,14 +97,15 @@ class Class
     print "Current temperature in #{full} is: #{temp_f}\n"
   end
 
-  def show_daylight
+  def save_daylight
     @dayurl = HTTParty.get("http://api.wunderground.com/api/b1c58af1b85cc78f/astronomy/q/#{@zipcode}.json")
     risehour = @dayurl['moon_phase']['sunrise']['hour']
     riseminute = @dayurl['moon_phase']['sunrise']['minute']
     sethour = @dayurl['moon_phase']['sunset']['hour']
     setminute = @dayurl['moon_phase']['sunset']['minute']
-    puts "Sunrise at this zipcode is at #{risehour}:#{riseminute} AM."
-    puts "Sunset at this zipcode is at #{sethour}:#{setminute} PM."
+    @daylight_report = puts "Sunrise at this zipcode is at #{risehour}:#{riseminute} AM. \n
+    Sunset at this zipcode is at #{sethour}:#{setminute} PM."
+    @redis.set("#{@zipcode}", "#{@daylight_report}")
   end
 
   def run_alerts
